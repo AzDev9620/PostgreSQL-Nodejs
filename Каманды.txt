@@ -1,0 +1,166 @@
+#Сайт для создание быстрого таблицу с информации: https://mockaroo.com/
+#Исправить кирилицу -  "psql \! chcp 1251"
+
+#Работа с базы Данных
+*** Создать новый базу: CREATE DATABASE test;
+*** Поключиться к другому базу: \connect test;
+*** Удалить базу данных: DROP DATABASE test;
+
+
+#Работа с таблицей
+*** Создать новую таблицу: CREATE TABLE users(id BIGSERIAL  PRIMARY KEY, name VARCHAR(60) NOT NULL, email VARCHAR(60) NOT NULL, time DATE NOT NULL);
+*** Удалить таблицу: DROP TABLE users;
+*** Посмотеть что в тоблице: \d users;
+
+
+#Добавление инфу в таблицу
+Добавить инфу: INSERT INTO users (name, email, time) VALUES ('qwe', 'asd@asd', '2000-22-22');
+Увидеть инфу : SELECT * FROM users;
+
+
+#добовляем с сайта инфу с mockaroo.com помошю команды: \l C:/Users/User/Desktop/users.sql
+
+#ишем с таблицы то что нужно: SELECT first_name FROM users; Он берет все емена с таблицы users; 
+#Будем сортировать наши талицы: SELECT * FROM users ORDER BY first_name ASC; Сортирует по алфавиту наш имя по default ASC;
+#Будем сортировать наши талицы: SELECT * FROM users ORDER BY first_name DESC; Сортирует по алфавиту толька ноборот наш имя;
+#Будем сортировать наши талицы: SELECT * FROM users ORDER BY first_name, email; Сортирует оба столбца по алфавиту;
+
+
+
+==== DISTINCT ====  === WHERE === === AND ===
+#Сортировка по уникальности, если повторяюшийся информаци много то он берет толька один экземпляр: 
+SELECT DISTINCT first_name FROM users ORDER BY first_name; 
+
+
+#Если мне нужно из gender толька мужчины то тогда пишем такой код: 
+SELECT * FROM users WHERE gender='Male';
+
+
+#из таблицы users бери Female и бери под имени first_name кого небуд: 
+SELECT * FROM users WHERE gender='Female' AND first_name='Yankin';
+
+
+#можем писать так из таблицы users бери gender='Male' и (по имени Alis или по имени Wear) и он найдет либо того либо того:
+SELECT * FROM users WHERE gender='Female' AND (first_name='Alis' or last_name='Wear');
+SELECT * FROM users WHERE gender='Female' AND (first_name='Alis' or last_name='Wear') AND first_name='Jest';
+
+
+ === LIMIT === === OFSSET === 
+#Тепер нам нужно толька взять 10 инфи дать ЛИМИТ:
+SELECT * FROM users LIMIT 10; (SELECT * FROM users OFSSET 10 FETCH FIRST 10 ROWS)-это sql запрос тоже самый вернет 10 инфы;
+
+#Если нам нужно через 10 инфи показать с 11 того то тогда пишем OFFSET:
+SELECT * FROM users OFFSET 10 LIMIT 10;
+
+
+
+#если нам искать в таблице users толька страны Россия, Бразилия то тогда пишем такой код: 
+SELECT * FROM users WHERE country='Russion' OR country='Brazil' OR 'country='Poland'; 
+
+#Второй способ писать токого когда с помошью IN и сортировка по алфавиту: 
+SELECT * FROM users WHERE country IN ('Russion', 'Brazil', 'Poland') ORDER BY country;
+
+
+ === BETWEEN === === LIKE ILIKE === 
+ #Если нужно с когото даты взять минмалного до максимального то можем так писать: 
+ SELECT * FROM users WHERE date_of_birth BETWEEN DATE '2021-05-05' AND '2022-01-01';
+ #сортировка
+ SELECT * FROM users WHERE date_of_birth BETWEEN DATE '2021-05-05' AND '2022-01-01' ORDER BY date_of_birth;
+
+#Если в емали вам нужно толька .com то пишем такой код
+ SELECT * FROM users WHERE email LIKE '%.com';
+ SELECT * FROM users WHERE email LIKE '%skype.com';
+ SELECT * FROM users WHERE email LIKE '%skype%';
+
+#Тепер если нужно нам 7 буквовых емалов то тогда пишем такой код: 
+SELECT * FROM users WHERE email LIKE '________@%'; 
+
+#ILIKE он делает Lowercase сделает бальшие буквы маленьким:
+SELECT * FROM users WHERE last_name ILIKE 'd%'; 
+
+
+
+ === GROUP BY === === HAVING ===
+#Сортировка по уникальности, если повторяюшийся информаци много то он берет толька один экземпляр и Если нам нужно сортировать города или имя то он нам может вернуть сколька их повторяюшийся: 
+SELECT gender, COUNT(*) FROM users GROUP BY gender; 
+
+#Если нам нужно именно  инфи больше с 10 то нужно писать: (HAVING нужно  писать после GROUP BY)
+SELECT gender, COUNT(*) FROM users GROUP BY gender HAVING COUNT(*) => 10 ORDER BY gender; 
+
+
+ === Agregations Functions ===
+ #Создаём новою таблицу с Машинами:
+ create table car (
+	id BIGSERIAL PRIMARY KEY NOT NULL,
+	make VARCHAR(80),
+	model VARCHAR(80),
+	price NUMERIC(19, 2)
+);
+#Пишем Команду: 
+# Выводим Максимальную цену и минимальную цену ешё можем выводить среднию цену(avg): 
+ SELECT max(price) from car;  6666.55 если писать так то он нам выведит целое число SELECT ROUND(max(price)) from car;
+ SELECT min(price) from car;
+ SELECT avg(price) from car;
+
+#Выводим несколька из таблиц миним и максимальный цены: 
+SELECT make, model, MIN(price) FROM car GROUP BY make, model;
+SELECT make, MIN(price) FROM car GROUP BY make;
+
+#выводим обшию сумму всех машин:
+SELECT SUM(price) FROM car; 
+
+#выводим уникальных make по имени обшую сумму машин!
+SELECT make, SUM(price) FROM car GROUP BY make;
+
+
+
+ === ALIAS ===
+#Если нам нужноо сделать какойто скиду на цены в машин:
+SELECT id, make, model, price, ROUND(price * .10, 2) FROM car;  
+
+#если нам нужно сделать акцию нужно будет отнять от обший суммы из скидок:  
+SELECT id, make, model, price, ROUND(price * .10, 2), ROUND(price - (price * 0.10)) FROM car; 
+ === ALIAS  Дает имя в столбек===
+SELECT id, make, model, price AS original_price, ROUND(price * .10, 2) AS chegirma, ROUND(price - (price * 0.10)) AS aksiya_narxi FROM car; 
+
+
+
+ === COALSESCE ===
+ #Если в таблице 70процентов есть емаил 30 процентов нет! То тогда мы можем добавить:
+ SELECT COALSESCE (email, 'Email yoq joyga email qoshiladi') FROM users;
+
+ == NULLIF == - : NULLIF(1, 2) вренет 1 если два цыфра будет одинакова тогда он вернет нам null
+
+
+=== TIMESTAMP === 
+SELECT NOW();
+SELECT NOW()::DATE;
+SELECT NOW()::TIME;
+
+
+#Выводить дату раждения!
+test=# SELECT first_name, AGE(NOW(), date_of_birth) as age FROM users;
+
+
+=== UNIQUE ===
+# сдесь мы выводим сколька сушествует емаилов: 
+SELECT email, COUNT(*) FROM users GROUP BY email HAVING COUNT(*) > 1;
+
+
+===== CHECK ======
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
